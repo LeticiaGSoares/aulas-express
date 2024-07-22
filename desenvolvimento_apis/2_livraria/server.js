@@ -9,7 +9,6 @@
 import "dotenv/config" 
 import express, { response } from "express"
 import mysql from "mysql2"
-import {v4 as uuidv4} from 'uuid'
 
 const PORT = process.env.PORT
 
@@ -272,6 +271,11 @@ app.post('/funcionarios', (req, res) => {
         return
     }
 
+    if(!email.includes("@")){
+        res.status(400).json({message: "O email precisa ter '@'"})
+        return
+    }
+
     const checkSql = /*sql*/ `
         SELECT * FROM funcionarios
         WHERE email = "${email}"
@@ -357,7 +361,7 @@ app.put('/funcionarios/:id', (req, res) => {
     SELECT * FROM funcionarios 
     WHERE id = "${id}"
     `
-
+    
     conn.query(checkSql, (err, data) => {
         if(err){
             res.status(500).json({message: "Erro ao buscar funcionário"})
@@ -367,6 +371,23 @@ app.put('/funcionarios/:id', (req, res) => {
         if(data.length === 0){
             res.status(404).json({message: "Funcionário não encontrado"})
         }
+        
+        const emailCheckSql = /*sql*/ `
+        SELECT * FROM funcionarios 
+        WHERE id = "${id}" AND email = "${email}"
+        `
+
+        conn.query(emailCheckSql, (err, data)=>{
+            if(err){
+                console.error(err)
+                res.status(500).json({message: "Erro ao verificar o email"})
+                return
+            }
+
+            if(data.length > 0){
+                return res.status(409).json({message:"E-mail já está em uso!"})
+            }
+        })
 
         const updateSql = /*sql*/ `UPDATE funcionarios SET
         nome = "${nome}", cargo = "${cargo}", data_contratacao = "${data_contratacao}",
@@ -391,13 +412,25 @@ app.delete('/funcionarios/:id', (req, res) => {
     const deleteSql = /*sql*/ `
     DELETE FROM funcionarios WHERE id= "${id}"`
 
-    conn.query(deleteSql)
+    conn.query(deleteSql, (err, info)=> {
+        if(err){
+            res.status(500).json({message: 'Erro ao deletar funcionário'})
+            return
+        }
+        if(info.affectedRows === 0){
+            res.status(404).json({message: 'Funcionário não encontrado'})
+            return
+        }
 
-    return res.status(200).json({message: "[DELETE] /funcionarios"})
+        res.status(200).json({message: 'Funcionário deletado'})
+
+    })
 })
-
 
 //Rota 404
 app.use((request, response)=>{
     response.status(404).json({message: "Rota não encontrada"})
+})
+process.on("SIGINT", ()=> {
+    
 })
