@@ -17,8 +17,5 @@ conn.query(tableClientes, (err, result, field)=>{
         console.error("Erro ao criar a tabela "+ err.stack)
         return
     }
-
-    console.log(result)
-    console.log(field)
     console.log('Tabela [clientes] criada com sucesso')
 })

@@ -5,8 +5,8 @@ const router = Router()
 
 router.get('/', getLivros);
 router.post('/', cadastrarLivros)
-router.get('/:id', buscarLivro)
-router.put('/editar/:id', editarLivro)
-router.delete('/deletar/:id', deletarLivro)
+router.get('/:livro_id', buscarLivro)
+router.put('/editar/:livro_id', editarLivro)
+router.delete('/deletar/:livro_id', deletarLivro)
 
 export default router;

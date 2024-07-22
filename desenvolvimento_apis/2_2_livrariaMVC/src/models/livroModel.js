@@ -2,7 +2,7 @@ import conn from '../config/conn.js'
 
 const tableLivros = /*sql*/ `
     CREATE TABLE IF NOT EXISTS livros (
-        id VARCHAR(60) PRIMARY KEY,
+        livro_id VARCHAR(60) PRIMARY KEY,
         titulo VARCHAR(255) NOT NULL,
         autor VARCHAR(255) NOT NULL,
         ano_publicacao YEAR(4) not null,
@@ -14,13 +14,10 @@ const tableLivros = /*sql*/ `
     );
 `
 
-conn.query(tableLivros, (err, result, field)=>{
+conn.query(tableLivros, (err)=>{
     if(err){
         console.error("Erro ao criar a tabela "+ err.stack)
         return
     }
-
-    console.log(result)
-    console.log(field)
     console.log('Tabela [livros] criada com sucesso')
 })
