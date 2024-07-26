@@ -1,7 +1,7 @@
 import conn from "../config/conn.js";
 import {v4 as uuidv4} from 'uuid';
 
-export const cadastrarMotorista = (req, res) => {
+export const cadastrarMotorista = (req, res) => { //ok
     const {nome, data_nascimento, numero_carteira_habilitacao} = req.body
 
     //validacoes
@@ -52,10 +52,74 @@ export const cadastrarMotorista = (req, res) => {
         res.status(201).json({message: "Motorista cadastrado"})
     })
 }
-export const buscarMotorista = (req, res) => {
+export const buscarMotorista = (req, res) => { //revisar 
+    const {id_onibus} = req.params
+
+    const checkSql = /*sql*/ `
+        SELECT * FROM onibus
+        WHERE ?? = ?
+    `
+    const checkData = ["id_onibus", id_onibus]
+
+    conn.query(checkSql, checkData, (err, data)=> {
+        if(err){
+            res.status(500).json({message: "Erro ao buscar onibus"})
+            return
+        }
+
+        if(data.length === 0){
+            res.status(404).json({message: "onibus não encontrado"})
+            return
+        }
+
+        res.status(200).json(data.morotista)
+    })
 }
-export const deletarMotorista = (req, res) => {}
-export const getMotoristas = (req, res) => {
+export const deletarMotorista = (req, res) => { //revisar DEFINITIVAMENTE
+    const {id_onibus} = req.params
+
+    const checkOnibusSql = /*sql*/`
+        SELECT * FROM ??
+        WHERE ?? = ?
+    `
+
+    const checkOnibusData = ["onibus", "id_onibus", id_onibus]
+
+    const id_motorista = conn.query(checkOnibusSql, checkOnibusData, (err, data)=> {
+        if(err){
+            res.status(500).json({message: "Erro ao buscar onibus"})
+            return
+        }
+
+        if(data.length === 0){
+            res.status(404).json({message: "onibus não encontrado"})
+            return
+        }
+
+        res.status(200).json(data.morotista)
+        return data.id_motorista
+    })
+
+    const checkMotoristaSql = /*sql*/ `
+        DELETE ?? WHERE ?? = ?
+    `
+
+    const checkMotoristaData = ["motoristas", "id_motorista", id_motorista]
+
+    conn.query( checkMotoristaSql, checkMotoristaData, (err, info)=>{
+        if(err){
+            res.status(500).json({message: 'Erro ao deletar motorista'})
+            return
+        }
+        if(info.affectedRows === 0){
+            res.status(404).json({message: 'motorista não encontrado'})
+            return
+        }
+
+        res.status(200).json({message: 'motorista deletado'})
+    })
+}
+export const getMotoristas = (req, res) => { //ok
     const checkSql = /*sql*/ ` SELECT * FROM motoristas;`
 
     conn.query(checkSql, (err, data)=> {

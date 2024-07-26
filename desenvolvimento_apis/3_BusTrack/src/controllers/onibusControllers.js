@@ -1,7 +1,7 @@
 import conn from "../config/conn.js";
 import {v4 as uuidv4} from 'uuid';
 
-export const cadastrarOnibus = (req, res) => {
+export const cadastrarOnibus = (req, res) => { //ok
     const {placa, modelo, ano_fabricacao, capacidade, id_linha, id_motorista} = req.body
 
     //validacoes
@@ -44,7 +44,7 @@ export const cadastrarOnibus = (req, res) => {
 
         if(data.length > 0){
             res.status(409).json({message: "onibus já existe no banco de dados"})
-            return console.log(err);
+            return console.log(err)
         }
     })
 
@@ -67,19 +67,50 @@ export const cadastrarOnibus = (req, res) => {
         res.status(201).json({message: "onibus cadastrado"})
     })
 }
-export const buscarOnibus = (req, res) => {
+export const buscarOnibus = (req, res) => {//ok
     const {id_onibus} = req.params
 
-    const checkSql = /*sql*/ `
-        SELECT * FROM onibus
-        WHERE ?? = ?
+    const checkSql = /*sql*/ ` 
+        SELECT 
+            ??,??,??,??,
+            JSON_OBJECT(
+                'nome_linha', ??,
+                'numero_linha', ??,
+                'itinerario', ??
+            ) AS linha,
+            JSON_OBJECT(
+                'nome', ??,
+                'data_nascimento', ??,
+                'numero_carteira_habilitacao', ??
+            ) AS motorista,
+            ??
+            
+        FROM ??
+            
+        INNER JOIN ?? ON ?? = ??
+        INNER JOIN ?? ON ?? = ??
+        WHERE ?? = ?;
+
     `
-    const checkData = ["id_onibus", id_onibus]
+    const checkData = [
+        "onibus.placa", "onibus.modelo", "onibus.ano_fabricacao", "onibus.capacidade", 
+        "linhas.nome_linha",
+        "linhas.numero_linha",
+        "linhas.itinerario",
+        "motoristas.nome",
+        "motoristas.data_nascimento",
+        "motoristas.numero_carteira_habilitacao",
+        "onibus.id_onibus",
+        "onibus",
+        "linhas", "onibus.id_linha", "linhas.id_linha",
+        "motoristas", "onibus.id_motorista", "motoristas.id_motorista",
+        "id_onibus", id_onibus
+    ]
 
     conn.query(checkSql, checkData, (err, data)=> {
         if(err){
             res.status(500).json({message: "Erro ao buscar onibus"})
-            return
+            return console.error(err)
         }
 
         if(data.length === 0){
@@ -90,10 +121,42 @@ export const buscarOnibus = (req, res) => {
         res.status(200).json(data)
     })
 }
-export const getOnibus = (req, res) => {
-    const checkSql = /*sql*/ ` SELECT * FROM onibus;`
+export const getOnibus = (req, res) => { //ok
+    const checkSql = /*sql*/ ` 
+        SELECT 
+            ??,??,??,??,  
+            JSON_OBJECT(
+                'nome_linha', ??,
+                'numero_linha', ??,
+                'itinerario', ??
+            ) AS linha,
+            JSON_OBJECT(
+                'nome', ??,
+                'data_nascimento', ??,
+                'numero_carteira_habilitacao', ??
+            ) AS motorista,
+            ??
+        FROM ??
+            
+        INNER JOIN ?? ON ?? = ??
+        INNER JOIN ?? ON ?? = ??;
 
-    conn.query(checkSql, (err, data)=> {
+    `
+    const checkData = [
+        "onibus.placa", "onibus.modelo", "onibus.ano_fabricacao", "onibus.capacidade",
+        "linhas.nome_linha",
+        "linhas.numero_linha",
+        "linhas.itinerario",
+        "motoristas.nome",
+        "motoristas.data_nascimento",
+        "motoristas.numero_carteira_habilitacao",
+        "onibus.id_onibus",
+        "onibus",
+        "linhas", "onibus.id_linha", "linhas.id_linha",
+        "motoristas", "onibus.id_motorista", "motoristas.id_motorista"
+    ]
+
+    conn.query(checkSql, checkData, (err, data)=> {
         if(err){
             res.status(500).json({message: "[onibus] Erro ao buscar dados"})
             return console.log(err)

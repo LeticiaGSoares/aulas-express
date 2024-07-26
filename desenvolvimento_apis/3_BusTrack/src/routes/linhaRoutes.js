@@ -5,7 +5,7 @@ const router = Router()
 
 router.post('/', cadastrarLinha);
 router.get('/:id_linha', buscarLinha)
-router.put('/:id_linha', atualizarLinha)
+router.put('/:id_onibus', atualizarLinha)
 router.get('/', getLinhas)
 
 export default router;

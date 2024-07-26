@@ -1,7 +1,7 @@
 import conn from "../config/conn.js";
 import {v4 as uuidv4} from 'uuid';
 
-export const cadastrarLinha = (req, res) => {
+export const cadastrarLinha = (req, res) => { //ok
     const {nome_linha, numero_linha, itinerario} = req.body
 
     //validacoes
@@ -52,13 +52,78 @@ export const cadastrarLinha = (req, res) => {
         res.status(201).json({message: "linha cadastrada"})
     })
 }
-export const buscarLinha = (req, res) => {
-    res.status(200).json('[GET] /linhas/:id_linha')
+export const buscarLinha = (req, res) => { //ok
+    const {id_linha} = req.params
+
+    const checkSql = /*sql*/ `
+        SELECT * FROM linhas
+        WHERE ?? = ?
+    `
+    const checkData = ["id_linha", id_linha]
+
+    conn.query(checkSql, checkData, (err, data)=> {
+        if(err){
+            res.status(500).json({message: "Erro ao buscar linhas"})
+            return
+        }
+
+        if(data.length === 0){
+            res.status(404).json({message: "linhas não encontrado"})
+            return
+        }
+
+        res.status(200).json(data)
+    })
 }
-export const atualizarLinha = (req, res) => {
-    res.status(200).json('[PUT] /linhas/:id_linha')
+export const atualizarLinha = (req, res) => { //depende do getOnibus
+    const {id_onibus} = req.params
+    const {nome_linha, numero_linha, itinerario} = req.body
+
+    if(!nome_linha){
+        res.status(400).json({message: "O nome_linha é obrigatório"})
+        return
+    }
+    if(!numero_linha){
+        res.status(400).json({message: "O numero_linha é obrigatório"})
+        return
+    }
+    if(!itinerario){
+        res.status(400).json({message: "O itinerário é obrigatório"})
+        return
+    }
+    
+    const checkSql = /*sql*/ `
+    SELECT * FROM onibus 
+    WHERE id_onibus = "${id_onibus}"
+    `
+    
+    conn.query(checkSql, (err, data) => {
+        if(err){
+            res.status(500).json({message: "Erro ao buscar cliente"})
+            return
+        }
+
+        if(data.length === 0){
+            res.status(404).json({message: "linha não encontrada"})
+        }
+
+        const updateSql = /*sql*/ `UPDATE onibus SET
+        nome_linha = "${nome_linha}", numero_linha = "${numero_linha}", itinerario = "${itinerario}", email = "${email}"
+        WHERE id_onibus = "${id_onibus}"
+        `
+
+        conn.query(updateSql, (err)=> {
+            if(err){
+                res.status(500).json({message: "Erro ao atualizar linha"})
+                return
+            }
+
+            res.status(200).json({message: "linha atualizada"})
+        })
+
+    })
 }
-export const getLinhas = (req, res) => {
+export const getLinhas = (req, res) => { //ok
     const checkSql = /*sql*/ ` SELECT * FROM linhas;`
 
     conn.query(checkSql, (err, data)=> {
