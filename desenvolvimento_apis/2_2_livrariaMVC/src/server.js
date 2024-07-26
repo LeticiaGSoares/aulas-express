@@ -36,7 +36,7 @@ app.get("/", (req, res) => {
   res.send("Olá, mundo!");
 });
 app.use((request, response)=>{
-  response.status(404).json({message: "Rota não encontrada"})
+  response.status(404).json({message: "ERRO 404: Rota não encontrada"})
 })
 
 app.listen(PORT, () => {
