@@ -1,17 +1,37 @@
-import "dotenv/config"
-import express from "express"
+import "dotenv/config";
+import express, { json } from "express";
+import conn from "./config/conn.js";
 
-//Importar conexão
-import conn from './config/conn.js'
+import usuariosRoutes from "./routes/usuariosRoutes.js"
 
-const PORT = process.env.PORT
+import "./models/usuarioModel.js"
 
-const app = express()
+const PORT = process.env.PORT;
+const app = express();
 
-app.get("/", (req, res)=> {
-    res.send("Olá, mundo!")
+const logRoutes = (req, res, next) => {
+    const { url, method } = req;
+    const rota = `[${method.toUpperCase()}] ${url}`;
+    console.log(rota);
+    next();
+};  
+
+export const messageRoutes = (req, res) => {
+    const { url, method } = req;
+    const rota = `[${method.toUpperCase()}] ${url}`;
+    return rota;
+}
+
+app.use(express.urlencoded({extended: true}))
+app.use(json())
+app.use(logRoutes)
+
+app.use("/usuarios", usuariosRoutes)
+
+app.use("*", (req, res) => {
+    res.status(404).send({ message: "Rota não encontrada" })
 })
 
-app.listen(PORT, ()=> {
-    console.log("Servidor on http://localhost:" + PORT)
-})
+app.listen(PORT, () => {
+  console.log("Servidor rodando na porta: " + PORT);
+});
