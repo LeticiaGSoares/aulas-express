@@ -1,10 +1,12 @@
 import bcrypt from "bcrypt";
 import { v4 } from "uuid";
 import conn from "../config/conn.js";
+import jwt from "jsonwebtoken"
 
 import { table_mysql } from "../models/usuarioModel.js";
 
-import createUserToken from "../helpers/creater-user-token.js";
+import createUserToken from "../helpers/create-user-token.js";
+import getToken from "../helpers/get-token.js";
 
 export const register = (req, res) => {
   const { nome, email, telefone, senha } = req.body;
@@ -139,5 +141,10 @@ export const login = (req, res) => {
 };
 
 export const getUser = (req, res) => {
-  console.log(req.headers.authorization)
+  if (req.headers.authorization) {
+    const token = getToken(req)
+
+    const decoded = jwt.decode(token, process.env.JWT_PASSWORD)
+    
+  }
 }
