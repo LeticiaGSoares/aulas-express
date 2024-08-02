@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express, { json } from "express";
 import conn from "./config/conn.js";
+import path from 'node:path'
+import { fileURLToPath } from "node:url";
 
 import usuariosRoutes from "./routes/usuariosRoutes.js"
 
@@ -22,9 +24,16 @@ export const messageRoutes = (req, res) => {
     return rota;
 }
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 app.use(express.urlencoded({extended: true}))
-app.use(json())
+app.use(express.json())
 app.use(logRoutes)
+
+
+//localizar onde está a pasta public
+app.use("/public", express.static(path.join(__dirname) + "public"))
 
 app.use("/usuarios", usuariosRoutes)
 

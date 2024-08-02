@@ -7,6 +7,9 @@ import { table_mysql } from "../models/usuarioModel.js";
 
 import createUserToken from "../helpers/create-user-token.js";
 import getToken from "../helpers/get-token.js";
+import verifyToken from '../helpers/verify-token.js'
+import getUserByToken from '../helpers/get-user-by-token.js'
+
 
 export const register = (req, res) => {
   const { nome, email, telefone, senha } = req.body;
@@ -145,6 +148,119 @@ export const getUser = (req, res) => {
     const token = getToken(req)
 
     const decoded = jwt.decode(token, process.env.JWT_PASSWORD)
-    
+    console.log(decoded)
   }
+}
+
+export const getUserById = (req, res)=>{
+  const {id} = req.params
+
+  const checkSql = /*sql*/`
+    SELECT usuario_id, nome, email, telefone, imagem
+    FROM ${table_mysql}
+    WHERE ?? = ?
+  `
+
+  const checkData = ["usuario_id", id]
+
+  conn.query(checkSql, checkData, (err, data)=>{
+    if(err){
+      console.error(err)
+      res.status(500).json({err: "Erro ao buscar usuários"})
+      return
+    }
+    
+    if(data.length === 0){
+      res.status(500).json({err: "Erro ao buscar usuários"})
+      return
+    }
+
+    const usuario = data[0]
+    res.status(200).json(usuario)
+  })
+}
+
+export const updateUser = async (req, res) => {
+  const {id} = req.params
+
+  //verificar se o usuario está logado
+  try{
+    const token = getToken(req)
+    //busca dados no banco, devolve e faz uma nova consulta ao banco
+    //por ter muitas consultas pode demorar, então vai de await neles
+    // console.log("token: ", token)
+    const user = await getUserByToken(token)
+    // console.log("user: ",user)
+
+    const {nome, email, telefone} = req.body
+
+    if(!nome){
+      res.status(400).json({message: "O nome é obrigatório"})
+      return
+    }
+    if(!email){
+      res.status(400).json({message: "O email é obrigatório"})
+      return
+    }
+    if(!telefone){
+      res.status(400).json({message: "O telefone é obrigatório"})
+      return
+    }
+
+    const checkSql = /*sql*/ `SELECT * FROM ${table_mysql} WHERE ?? = ?`
+    const checkData = ["usuario_id", id]
+
+    conn.query(checkSql, checkData, (err, data)=> {
+      if(err){
+        res.status(500).json({erro: err})
+        return
+      }
+      if(data.length === 0){
+        res.status(404).json({message: "Usuário não encontrado"})
+        return
+      }
+
+      //verifica se o email já está em uso.
+      const checkEmailSql = /*sql*/ `
+        SELECT * FROM ${table_mysql} 
+        WHERE ?? = ? AND ?? != ?
+      `
+      const checkEmailSqlData = ["email", email, "usuario_id", id]
+
+      conn.query(checkEmailSql, checkEmailSqlData, (err, data)=>{
+        if(err){
+          res.status(500).json({erro: "Erro ao buscar email"})
+          return
+        }
+        if(data.length > 0){
+          res.status(409).json({message: "Email já está em uso"})
+          return
+        }
+
+        const updateSql = /*sql*/ `
+          UPDATE ${table_mysql}
+          SET ? WHERE ?? = ?
+        `
+        //colocando apenas uma ? pq ele vai pegar um objeto
+        const updateData = [{nome, email, telefone}, "usuario_id", id]
+
+        conn.query(updateSql, updateData, (err)=>{
+          if(err){
+            console.error(err)
+            res.status(500).json({err: "Erro ao atualizar usuário"})
+            return
+          }
+
+          res.status(200).json({message: `[${table_mysql}] atualizado`})
+        })
+      })
+    })
+
+
+    res.status(200).json({message: "Deu tudo ok"})
+  
+  }catch(error){
+    res.status(500).json({err: error})
+  }
+  
 }
