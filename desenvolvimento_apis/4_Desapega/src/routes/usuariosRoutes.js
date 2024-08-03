@@ -3,6 +3,7 @@ import { Router } from "express";
 import { register, login, getUser, getUserById, updateUser} from "../controllers/usuariosControllers.js";
 import { validarUsuario } from "../helpers/validar-user.js";
 import verifyToken from "../helpers/verify-token.js";
+import imageUpload from '../helpers/image-upload.js'
 
 const router = Router()
 
@@ -12,6 +13,6 @@ router.post("/login", login)
 router.get("/:id", getUserById)
 
 //só permitir que edite se o user estiver logado e pode fazer upload de imagem de perfil
-router.put("/update/:id", verifyToken, updateUser)
+router.put("/update/:id", verifyToken, imageUpload.single("imagem") , updateUser)
 
 export default router

@@ -180,87 +180,87 @@ export const getUserById = (req, res)=>{
   })
 }
 
-export const updateUser = async (req, res) => {
-  const {id} = req.params
+export const updateUser = async (request, response) => {
+  const { id } = request.params;
 
-  //verificar se o usuario está logado
-  try{
-    const token = getToken(req)
-    //busca dados no banco, devolve e faz uma nova consulta ao banco
-    //por ter muitas consultas pode demorar, então vai de await neles
-    // console.log("token: ", token)
-    const user = await getUserByToken(token)
-    // console.log("user: ",user)
+  //verificar se o usuário está logado
+  try {
+    const token = getToken(request);
+    const user = await getUserByToken(token);
 
-    const {nome, email, telefone} = req.body
+    const { nome, email, telefone } = request.body;
 
-    if(!nome){
-      res.status(400).json({message: "O nome é obrigatório"})
-      return
-    }
-    if(!email){
-      res.status(400).json({message: "O email é obrigatório"})
-      return
-    }
-    if(!telefone){
-      res.status(400).json({message: "O telefone é obrigatório"})
-      return
+    //adicionar imagem ao objeto
+    let imagem = user.imagem
+    if(request.file){
+      imagem = request.file.filename
     }
 
-    const checkSql = /*sql*/ `SELECT * FROM ${table_mysql} WHERE ?? = ?`
-    const checkData = ["usuario_id", id]
+    if (!nome) {
+      response.status(400).json({ message: "O nome é Obrigatório" });
+      return;
+    }
 
-    conn.query(checkSql, checkData, (err, data)=> {
-      if(err){
-        res.status(500).json({erro: err})
-        return
+    if (!email) {
+      response.status(400).json({ message: "O Email é Obrigatório" });
+      return;
+    }
+
+    if (!telefone) {
+      response.status(400).json({ message: "O Telefone é Obrigatório" });
+      return;
+    }
+
+    const checkSql = /*sql*/ `SELECT * FROM usuarios WHERE ?? = ?`;
+    const checkData = ["usuario_id", id];
+    conn.query(checkSql, checkData, (err, data) => {
+      if (err) {
+        console.error(err);
+        response.status(500).json({ err: "Erro ao buscar usuário" });
+        return;
       }
-      if(data.length === 0){
-        res.status(404).json({message: "Usuário não encontrado"})
-        return
+
+      if (data.length === 0) {
+        response.status(404).json({ err: "Usuário não encontrado" });
+        return;
       }
 
-      //verifica se o email já está em uso.
-      const checkEmailSql = /*sql*/ `
-        SELECT * FROM ${table_mysql} 
-        WHERE ?? = ? AND ?? != ?
-      `
-      const checkEmailSqlData = ["email", email, "usuario_id", id]
+      //validação de usuário do banco é o mesmo do token
 
-      conn.query(checkEmailSql, checkEmailSqlData, (err, data)=>{
-        if(err){
-          res.status(500).json({erro: "Erro ao buscar email"})
-          return
+      //verifique se o email já está em uso.
+      const checkEmailSql = /*sql*/ `SELECT * FROM usuarios WHERE ?? = ? AND ?? != ?`;
+      const checkEmailData = ["email", email, "usuario_id", id];
+      conn.query(checkEmailSql, checkEmailData, (err, data) => {
+        if (err) {
+          console.error(err);
+          resquest.status(500).json({ err: "Erro ao buscar email" });
+          return;
         }
+        
         if(data.length > 0){
-          res.status(409).json({message: "Email já está em uso"})
-          return
+          response.status(409).json({ err: "E-mail já está em uso" });
+          return;
         }
 
-        const updateSql = /*sql*/ `
-          UPDATE ${table_mysql}
-          SET ? WHERE ?? = ?
-        `
-        //colocando apenas uma ? pq ele vai pegar um objeto
-        const updateData = [{nome, email, telefone}, "usuario_id", id]
-
+        const updateSql = /*sql*/ `UPDATE usuarios SET ? WHERE ?? = ?`
+        const updateData = [{nome, email, telefone, imagem}, "usuario_id", id]
         conn.query(updateSql, updateData, (err)=>{
           if(err){
-            console.error(err)
-            res.status(500).json({err: "Erro ao atualizar usuário"})
-            return
+            console.error(err);
+            response.status(500).json({ err: "Erro ao atualizar usuário"});
+            return;
           }
 
-          res.status(200).json({message: `[${table_mysql}] atualizado`})
+          response.status(200).json({message: "Usuário Atualizado"})
         })
-      })
-    })
-
-
-    res.status(200).json({message: "Deu tudo ok"})
-  
-  }catch(error){
-    res.status(500).json({err: error})
+      });
+    });
+  } catch (error) {
+    console.error(error)
+    response.
+    status(error.status || 500).
+    json({
+      message: error.message || "Erro interno no servidor"
+    });
   }
-  
-}
+};
