@@ -5,8 +5,11 @@ import path from 'node:path'
 import { fileURLToPath } from "node:url";
 
 import usuariosRoutes from "./routes/usuariosRoutes.js"
+import objetoRoutes from "./routes/objetosRoutes.js"
 
 import "./models/usuarioModel.js"
+import "./models/objetoModel.js"
+import "./models/objetoImagesModel.js"
 
 const PORT = process.env.PORT;
 const app = express();
@@ -36,6 +39,7 @@ app.use(logRoutes)
 app.use("/public", express.static(path.join(__dirname) + "public"))
 
 app.use("/usuarios", usuariosRoutes)
+app.use("/objeto", objetoRoutes)
 
 app.use("*", (req, res) => {
     res.status(404).send({ message: "Rota não encontrada" })
